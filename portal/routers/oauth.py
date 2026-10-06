@@ -283,6 +283,8 @@ async def authorize_post(
     redirect_query = urllib.parse.urlencode(existing_query)
     redirect_url = urllib.parse.urlunparse(parsed_redirect._replace(query=redirect_query))
     return RedirectResponse(url=redirect_url, status_code=303)
+
+
 async def _handle_authorization_code_grant(
     db: AsyncSession,
     client: OAuthClient,
@@ -475,6 +477,7 @@ async def _handle_refresh_token_grant(
         expires_at=datetime.now(timezone.utc) + timedelta(hours=1),
     )
     db.add(new_token_record)
+    await db.flush()  # materialise new_token_record.id before audit log
     db.add(
         OAuthAuditLog(
             token_id=new_token_record.id,
@@ -494,6 +497,7 @@ async def _handle_refresh_token_grant(
         "refresh_token": new_refresh_token_raw,
         "scope": " ".join(token_record.scopes),
     }
+
 
 @router.post("/oauth/token", response_class=JSONResponse)
 async def token_exchange(

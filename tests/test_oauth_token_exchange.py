@@ -462,6 +462,7 @@ async def test_token_exchange_rollback_on_failure():
     from portal.database import create_event, create_user, get_session
     from portal.models import (
         DeveloperAccount,
+        OAuthAuditLog,
         OAuthAuthorizationCode,
         OAuthClient,
         OAuthToken,
@@ -546,3 +547,9 @@ async def test_token_exchange_rollback_on_failure():
             select(OAuthToken).where(OAuthToken.client_id == client_db_id)
         )
         assert token_res.scalars().first() is None, "No orphaned token records should exist"
+
+        # No orphaned OAuthAuditLog records from the failed transaction
+        audit_res = await s.execute(
+            select(OAuthAuditLog).where(OAuthAuditLog.client_id == client_db_id)
+        )
+        assert audit_res.scalars().first() is None, "No orphaned audit log records should exist"
