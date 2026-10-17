@@ -123,6 +123,24 @@ class Room(Base):
     )
     floor_transcription_model: Mapped[str] = mapped_column(String(40), default="tiny", server_default=sa.text("'tiny'"))
     floor_language_code: Mapped[str | None] = mapped_column(String(10), nullable=True, default=None)
+    floor_source: Mapped[str] = mapped_column(String(20), default="jitsi_bot", server_default="jitsi_bot")
+    meeting_agent_enabled: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
+    program_key_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    program_key_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    # Short-lived credential for the first-party browser sender, kept separate from the encoder key.
+    program_session_secret_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    program_session_secret_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    program_session_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    program_connected_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    program_disconnected_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    program_sync_offset_ms: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    # "whip" keeps the independent dual-output model; "rtmps_relay" puts VoxBento in the YouTube path (#749).
+    program_ingest_mode: Mapped[str] = mapped_column(String(20), default="whip", server_default="whip")
+    program_relay_server: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    # Fernet-encrypted YouTube stream key; write-only from the API, never returned or logged.
+    program_relay_key_enc: Mapped[str | None] = mapped_column(Text, nullable=True)
+    program_relay_updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    floor_caption_seq: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
 
     # Translation Settings
     floor_translation_enabled: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
